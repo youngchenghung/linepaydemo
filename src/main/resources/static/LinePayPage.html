@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Pay Integration</title>
+</head>
+<body>
+    <button id="payButton">付款</button>
+
+    <script>
+    document.getElementById("payButton").addEventListener("click", async () => {
+        const linePayRequest = {
+            amount: 200,
+            currency: "TWD",
+            orderId: "fgdfgdg",
+            packages: [
+                {
+                    id: "package_id",
+                    name: "shop_name",
+                    amount: 200,
+                    products: [
+                        {
+                            id: "product_id",
+                            name: "product_name",
+                            quantity: 1,
+                            price: 200,
+                        },
+                    ],
+                },
+            ],
+            redirectUrls: {
+                confirmUrl: "http://localhost:8080/linepay/redirect",
+                cancelUrl: "https://your-domain.com/cancel",
+            },
+        };
+
+        try {
+            // 發送付款請求
+            const response = await fetch("/linepay/request", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(linePayRequest),
+            });
+
+            const result = await response.json();
+
+            if (result.info && result.info.paymentUrl && result.info.paymentUrl.web) {
+                // 在新標籤中打開 Line Pay 支付頁面
+                const newTab = window.open(result.info.paymentUrl.web, "_blank");
+
+                // 使用 postMessage 通信將 transactionId 傳回主頁面
+                window.addEventListener("message", async (event) => {
+                    if (event.data.type === "TRANSACTION_ID") {
+                        const transactionId = event.data.transactionId;
+
+                        // 呼叫後端確認 API
+                        const confirmResponse = await fetch(`/linepay/confirm?transactionId=${transactionId}`, {
+                            method: "GET",
+                        });
+
+                        const confirmResult = await confirmResponse.json();
+                        if (confirmResult.success) {
+                            alert("付款成功！");
+                        } else {
+                            alert("付款失敗！");
+                        }
+
+                        // 關閉新標籤
+                        newTab.close();
+                    }
+                });
+            } else {
+                alert("支付連結生成失敗！");
+            }
+        } catch (error) {
+            console.error("付款請求失敗", error);
+            alert("付款請求發生錯誤！");
+        }
+    });
+    </script>
+</body>
+</html>
