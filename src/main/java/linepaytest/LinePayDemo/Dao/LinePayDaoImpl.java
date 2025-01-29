@@ -28,7 +28,7 @@ public class LinePayDaoImpl implements LinePayDao {
 
     // LinePay API #1付款請求
     @Override
-    public LinePayResponse requestPayment(LinePayRequest linePayRequest) {
+    public LinePayResponse initiatePayment(LinePayRequest linePayRequest) {
         String url = "https://sandbox-api-pay.line.me/v3/payments/request";
         String requestUri = "/v3/payments/request";
         String nonce = UUID.randomUUID().toString();
