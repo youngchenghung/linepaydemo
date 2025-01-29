@@ -59,7 +59,7 @@ public class LinePayRequest {
         private String id;
         private String name;
         private int amount;
-        private List<Product> products;
+        private List<CartItem> products;
 
         // Getter and Setter for id
         public String getId() {
@@ -87,69 +87,15 @@ public class LinePayRequest {
         public void setAmount(int amount) {
             this.amount = amount;
         }
-
-        // Getter and Setter for products
-        public List<Product> getProducts() {
+        
+        public List<CartItem> getProducts() {
             return products;
         }
 
-        public void setProducts(List<Product> products) {
+        public void setProducts(List<CartItem> products) {
             this.products = products;
         }
 
-        // Nested class for Product
-        public static class Product {
-            private String id;
-            private String name;
-            private String imageUrl;
-            private int quantity;
-            private int price;
-
-            // Getter and Setter for id
-            public String getId() {
-                return id;
-            }
-
-            public void setId(String id) {
-                this.id = id;
-            }
-
-            // Getter and Setter for name
-            public String getName() {
-                return name;
-            }
-
-            public void setName(String name) {
-                this.name = name;
-            }
-
-            // Getter and Setter for imageUrl
-            public String getImageUrl() {
-                return imageUrl;
-            }
-
-            public void setImageUrl(String imageUrl) {
-                this.imageUrl = imageUrl;
-            }
-
-            // Getter and Setter for quantity
-            public int getQuantity() {
-                return quantity;
-            }
-
-            public void setQuantity(int quantity) {
-                this.quantity = quantity;
-            }
-
-            // Getter and Setter for price
-            public int getPrice() {
-                return price;
-            }
-
-            public void setPrice(int price) {
-                this.price = price;
-            }
-        }
     }
 
     // Nested class for RedirectUrls

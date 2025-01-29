@@ -7,7 +7,7 @@ import linepaytest.LinePayDemo.Model.LinePayResponse;
 public interface LinePayDao {
     
     // LinePay API #1付款請求
-    LinePayResponse requestPayment(LinePayRequest linePayRequest);
+    LinePayResponse initiatePayment(LinePayRequest linePayRequest);
 
     // LinePay API #2付款確認
     String confirmTransaction(String transactionId, LinePayConfirm linePayConfirm);

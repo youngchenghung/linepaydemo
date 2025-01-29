@@ -39,11 +39,11 @@ public class LinePayController {
 
     // LinePay API #1付款請求
     @PostMapping("/request")
-    public ResponseEntity<LinePayResponse> requestPayment(@RequestBody LinePayRequest linePayRequest) {
+    public ResponseEntity<LinePayResponse> requestPayment() {
         System.out.println("LinePay API #1付款請求");
 
-        LinePayResponse linePayResponse = linePayService.initiatePayment(linePayRequest);
-        requestCache.put(linePayRequest.getOrderId(), linePayRequest); // 將訂單資訊存入快取
+        LinePayResponse linePayResponse = linePayService.initiatePayment(); // 呼叫 initiatePayment API
+        // requestCache.put(orderId, linePayRequest); // 將訂單資訊存入快取
         return ResponseEntity.ok(linePayResponse);
     } 
 
