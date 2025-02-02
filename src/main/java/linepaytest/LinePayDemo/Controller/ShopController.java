@@ -28,6 +28,7 @@ public class ShopController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
     private CartService cartService;
 
     // 導向靜態資源頁面
@@ -43,11 +44,23 @@ public class ShopController {
     }
     
     @PostMapping("/cart/add")
-    public ResponseEntity<String> addToCart (@RequestBody CartItem item) {
-        cartService.addItemToCart(item);
-        
+    public ResponseEntity<String> addToCart (@RequestBody List<CartItem> items) {
+        items.forEach(cartService::addItemToCart);
+        if (items.isEmpty()) {
+            return ResponseEntity.badRequest().body("Cart is empty");
+        }
         return ResponseEntity.ok("Add to cart successfully");
     }
     
+    @GetMapping("/cart/items")
+    public List<CartItem> getCartItems() {
+        return cartService.getCartItems();
+    }
+    
+    @PostMapping("/cart/clear")
+    public ResponseEntity<String> clearCart() {
+        cartService.clearCart();
+        return ResponseEntity.ok("Cart is cleared");
+    }
     
 }

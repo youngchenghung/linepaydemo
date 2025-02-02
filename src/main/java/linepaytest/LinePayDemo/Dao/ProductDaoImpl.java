@@ -12,7 +12,7 @@ public class ProductDaoImpl implements ProductDao {
 
     @Override
     public List<Product> getProducts() {
-        return Arrays.asList(new Product("1", "杯子", 100),new Product("2", "盤子", 200));
+        return Arrays.asList(new Product("1", "杯子", "", 100),new Product("2", "盤子", "", 200));
     }
     
 }

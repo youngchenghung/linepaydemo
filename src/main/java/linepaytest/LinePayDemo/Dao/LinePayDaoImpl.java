@@ -36,7 +36,7 @@ public class LinePayDaoImpl implements LinePayDao {
         // 創建請求表頭
         HttpHeaders headers = createRequestHeaders(requestUri, linePayRequest, nonce);
         HttpEntity<LinePayRequest> request = new HttpEntity<>(linePayRequest, headers);
-        System.out.println("request: " + request);
+        // System.out.println("request: " + request);
 
         // 發送 POST 請求並獲取響應
         ResponseEntity<LinePayResponse> response = restTemplate.postForEntity(url, request, LinePayResponse.class);
@@ -53,7 +53,7 @@ public class LinePayDaoImpl implements LinePayDao {
         // 創建請求表頭
         HttpHeaders headers = createConfirmHeaders(confirmUrl, linePayConfirm, nonce);
         HttpEntity<LinePayConfirm> request = new HttpEntity<>(linePayConfirm, headers);
-        System.out.println("request: " + request);
+        // System.out.println("request: " + request);
 
         // 發送 POST 請求並獲取響應
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
@@ -101,7 +101,7 @@ public class LinePayDaoImpl implements LinePayDao {
             System.out.println("requestJson: " + requestJson);
     
             String data = encrypt(ChannelSecret, ChannelSecret + requestUri + requestJson + nonce); // 生成簽名
-            System.out.println("request signature: " + data);
+            // System.out.println("request signature: " + data);
             return data;
         }
         catch (Exception e) {
@@ -134,7 +134,7 @@ public class LinePayDaoImpl implements LinePayDao {
             System.out.println("requestJson: " + requestJson);
     
             String data = encrypt(ChannelSecret, ChannelSecret + confirmUrl + requestJson + nonce); // 生成簽名
-            System.out.println("confirm signature: " + data);
+            // System.out.println("confirm signature: " + data);
             return data;
         }
         catch (Exception e) {
@@ -162,11 +162,12 @@ public class LinePayDaoImpl implements LinePayDao {
     // 生成 status 簽名的方法
     private String statusSignature(String ChannelSecret, String statusUrl, String nonce) {
         String data = encrypt(ChannelSecret, ChannelSecret + statusUrl + nonce); // 生成簽名
-        System.out.println("status signature: " + data);
+        // System.out.println("status signature: " + data);
         return data;
     }
 
     // 加密方法
+    @SuppressWarnings("deprecation")
     private String encrypt(final String keys, final String data) {
         return toBase64String(HmacUtils.getHmacSha256(keys.getBytes()).doFinal(data.getBytes()));
     }

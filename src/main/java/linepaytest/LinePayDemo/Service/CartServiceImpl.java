@@ -1,5 +1,7 @@
 package linepaytest.LinePayDemo.Service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,8 +15,17 @@ public class CartServiceImpl implements CartService {
     private CartDao cartDao;
 
     @Override
-    public void addItemToCart(CartItem item) {
-        cartDao.addItem(item);
+    public void addItemToCart(CartItem items) {
+        cartDao.addItem(items);
     }
     
+    @Override
+    public void clearCart() {
+        cartDao.clearCart();
+    }
+
+    @Override
+    public List<CartItem> getCartItems() {
+        return cartDao.getCartItems();
+    }
 }

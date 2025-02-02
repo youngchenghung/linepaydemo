@@ -1,83 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Line Pay Integration</title>
+    <title>購物車結帳</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .cart-item { border: 1px solid #ddd; padding: 10px; margin: 10px; }
+        .cart { margin-top: 20px; border-top: 2px solid black; padding-top: 10px; }
+        .checkout-btn { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    </style>
 </head>
 <body>
-    <button id="payButton">付款</button>
+
+    <h1>🛒 購物車結帳</h1>
+    <div id="cart-list"></div>
+    
+    <button class="checkout-btn" onclick="checkout()">前往付款</button>
+    <button onclick="clearCart()">清空購物車</button>
 
     <script>
-    document.getElementById("payButton").addEventListener("click", async () => {
-        const linePayRequest = {
-            amount: 200,
-            currency: "TWD",
-            orderId: "fgdfgdg",
-            packages: [
-                {
-                    id: "package_id",
-                    name: "shop_name",
-                    amount: 200,
-                    products: [
-                        {
-                            id: "product_id",
-                            name: "product_name",
-                            quantity: 1,
-                            price: 200,
-                        },
-                    ],
-                },
-            ],
-            redirectUrls: {
-                confirmUrl: "http://localhost:8080/linepay/redirect",
-                cancelUrl: "https://your-domain.com/cancel",
-            },
-        };
+        $(document).ready(function () {
+            loadCart();
+        });
 
-        try {
-            // 發送付款請求
-            const response = await fetch("/linepay/request", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(linePayRequest),
-            });
+        // 取得購物車內容，並將相同商品數量累加
+        function loadCart() {
+            $.get("/shop/cart/items", function (data) {
+                let cartList = $("#cart-list");
+                cartList.empty();
 
-            const result = await response.json();
-
-            if (result.info && result.info.paymentUrl && result.info.paymentUrl.web) {
-                // 在新標籤中打開 Line Pay 支付頁面
-                const newTab = window.open(result.info.paymentUrl.web, "_blank");
-
-                // 使用 postMessage 通信將 transactionId 傳回主頁面
-                window.addEventListener("message", async (event) => {
-                    if (event.data.type === "TRANSACTION_ID") {
-                        const transactionId = event.data.transactionId;
-
-                        // 呼叫後端確認 API
-                        const confirmResponse = await fetch(`/linepay/confirm?transactionId=${transactionId}`, {
-                            method: "GET",
-                        });
-
-                        const confirmResult = await confirmResponse.json();
-                        if (confirmResult.success) {
-                            alert("付款成功！");
+                if (data.length === 0) {
+                    cartList.append("<p>購物車是空的</p>");
+                } else {
+                    let cartMap = {}; // 用於儲存合併的商品數量
+                    
+                    // 累加相同商品的數量
+                    data.forEach(item => {
+                        if (cartMap[item.id]) {
+                            cartMap[item.id].quantity += item.quantity;
                         } else {
-                            alert("付款失敗！");
+                            cartMap[item.id] = { name: item.name, quantity: item.quantity };
                         }
+                    });
 
-                        // 關閉新標籤
-                        newTab.close();
-                    }
-                });
-            } else {
-                alert("支付連結生成失敗！");
-            }
-        } catch (error) {
-            console.error("付款請求失敗", error);
-            alert("付款請求發生錯誤！");
+                    // 顯示合併後的購物車內容
+                    Object.values(cartMap).forEach(item => {
+                        cartList.append(`
+                            <div class="cart-item">
+                                <p>商品：${item.name} - 數量：${item.quantity}</p>
+                            </div>
+                        `);
+                    });
+                }
+            });
         }
-    });
+
+        // 清空購物車
+        function clearCart() {
+            $.post("/shop/cart/clear", function () {
+                alert("購物車已清空");
+                loadCart();
+            });
+        }
+
+        // 取得付款連結並轉跳到 LINE Pay
+        function checkout() {
+            $.post("/linepay/request", function (data) {
+                if (data.info && data.info.paymentUrl && data.info.paymentUrl.web) {
+                    let paymentUrl = data.info.paymentUrl.web;
+                    let transactionId = data.info.transactionId;
+                    
+                    // 付款完成後，LINE Pay 會返回 `transactionId`
+                    let confirmUrl = window.location.origin + "/checkout.html?transactionId=" + transactionId;
+
+                    // 轉跳到 LINE Pay 付款頁面
+                    window.location.href = paymentUrl + "&redirectUrl=" + encodeURIComponent(confirmUrl);
+                } else {
+                    alert("付款請求失敗，請稍後再試");
+                }
+            }).fail(function () {
+                alert("付款請求失敗，請稍後再試");
+            });
+        }
+
+        // 付款完成後，檢查 URL 是否帶有 `transactionId`
+        function checkPaymentStatus() {
+            let params = new URLSearchParams(window.location.search);
+            let transactionId = params.get("transactionId");
+
+            if (transactionId) {
+                // 呼叫後端 API 進行付款確認
+                $.post("/linepay/handleRedirect", { transactionId: transactionId }, function (response) {
+                    if (response.success) {
+                        alert("付款成功！");
+                        window.location.href = "/orderSuccess.html"; // 付款成功後轉跳到訂單成功頁面
+                    } else {
+                        alert("付款確認失敗，請聯繫客服");
+                    }
+                }).fail(function () {
+                    alert("付款確認請求失敗，請稍後再試");
+                });
+            }
+        }
     </script>
+
 </body>
 </html>

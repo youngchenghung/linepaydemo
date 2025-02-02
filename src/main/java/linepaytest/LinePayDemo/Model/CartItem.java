@@ -1,23 +1,23 @@
 package linepaytest.LinePayDemo.Model;
 
 public class CartItem {
-    private String productId;
-    private String productName;
+    private String id;
+    private String name;
     private String imageUrl;
     private Integer quantity;
     private Integer price;
     
-    public String getProductId() {
-        return productId;
+    public String getId() {
+        return id;
     }
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProductId(String id) {
+        this.id = id;
     }
-    public String getProductName() {
-        return productName;
+    public String getName() {
+        return name;
     }
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setProductName(String name) {
+        this.name = name;
     }
     public String getImageUrl() {
         return imageUrl;
