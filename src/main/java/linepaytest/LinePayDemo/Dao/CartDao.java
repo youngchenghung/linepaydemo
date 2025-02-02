@@ -6,7 +6,7 @@ import linepaytest.LinePayDemo.Model.CartItem;
 
 public interface CartDao {
     
-    void addItem(CartItem item);
+    void addItem(CartItem items);
 
     List<CartItem> getCartItems();
 

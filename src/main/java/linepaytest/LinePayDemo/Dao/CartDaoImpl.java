@@ -13,8 +13,8 @@ public class CartDaoImpl implements CartDao {
     private final List<CartItem> cart = new ArrayList<>();
 
     @Override
-    public void addItem(CartItem item){
-        cart.add(item);
+    public void addItem(CartItem items){
+        cart.add(items);
     }
 
     @Override
