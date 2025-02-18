@@ -4,10 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import linepaytest.LinePayDemo.Dao.CartDao;
 import linepaytest.LinePayDemo.Dao.LinePayDao;
 import linepaytest.LinePayDemo.Model.CartItem;
 import linepaytest.LinePayDemo.Model.LinePayConfirm;
@@ -39,7 +37,7 @@ public class LinePayServiceImpl implements LinePayService {
         
         // 組裝 LinePayRequest 中 RedirectUrls 資訊
         LinePayRequest.RedirectUrls redirectUrls = new LinePayRequest.RedirectUrls();
-        redirectUrls.setConfirmUrl("http://localhost:8080/linepay/redirect");
+        redirectUrls.setConfirmUrl("http://localhost:8080/redirect");
         redirectUrls.setCancelUrl("http://localhost:8080/cancel");
 
         // 組裝 LinePayRequest

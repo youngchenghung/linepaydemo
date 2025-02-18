@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員註冊</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin: 50px; 
+        }
+        input { 
+            display: block; 
+            margin: 10px auto; 
+            padding: 10px; 
+            width: 250px; 
+        }
+        button { 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            background: #007BFF; 
+            color: white; 
+            border: none; 
+            border-radius: 5px;
+        }
+        button:hover { 
+            background: #0056b3; 
+        }
+        .error { 
+            color: red; 
+        }
+    </style>
+</head>
+<body>
+
+    <h2>會員註冊</h2>
+    <input type="text" id="memberName" placeholder="輸入姓名">
+    <input type="email" id="email" placeholder="輸入 Email">
+    <input type="password" id="password" placeholder="輸入密碼">
+    <input type="password" id="confirmPassword" placeholder="確認密碼">
+    <button onclick="register()">註冊</button>
+    <p class="error" id="errorMessage"></p>
+    <p>已經有帳號？ <a href="/user_login">點此登入</a></p>
+
+    <script>
+        async function register() {
+            const memberName = document.getElementById("memberName").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+            const errorMessage = document.getElementById("errorMessage");
+
+            if (password !== confirmPassword) {
+                errorMessage.innerText = "密碼不一致！";
+                return;
+            }
+
+            const response = await fetch("http://127.0.0.1:8080/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ memberName, email, password })
+            });
+
+            if (response.status === 201) {
+                alert("註冊成功！請登入");
+                window.location.href = "/user_login";
+            } else {
+                errorMessage.innerText = "註冊失敗，Email 可能已被使用";
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員登入</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin: 50px; 
+        }
+        input { 
+            display: block; 
+            margin: 10px auto; 
+            padding: 10px; 
+            width: 250px; 
+        }
+        button { 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            background: #007BFF; 
+            color: white; 
+            border: none; 
+            border-radius: 5px;
+        }
+        button:hover { 
+            background: #0056b3; 
+        }
+        .error { 
+            color: red; 
+        }
+    </style>
+</head>
+<body>
+
+    <h2>會員登入</h2>
+    <input type="email" id="email" placeholder="輸入 Email" required>
+    <input type="password" id="password" placeholder="輸入密碼" required>
+    <button onclick="login()">登入</button>
+    <p class="error" id="error-message"></p>
+    <p>還沒有帳號？ <a href="/user_register">點此註冊</a></p>
+
+    <script>
+        async function login() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const errorMessage = document.getElementById("error-message");
+
+            try {
+                const response = await fetch("http://127.0.0.1:8080/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error("登入失敗");
+                }
+
+                const data = await response.json();
+                localStorage.setItem("token", data.token);
+                alert("登入成功");
+                window.location.href = "/user_profile";
+            } catch (error) {
+                errorMessage.textContent = "帳號或密碼錯誤";
+            }
+        }
+    </script>
+
+</body>
+</html>

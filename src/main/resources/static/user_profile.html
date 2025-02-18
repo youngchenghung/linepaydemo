@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>會員中心</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+      margin: 50px; 
+    }
+    .profile-container {
+      background: #fff;
+      padding: 20px;
+      width: 350px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: inline-block;
+    }
+    input, button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 250px;
+    }
+    button {
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="profile-container">
+    <h2>會員中心</h2>
+    <div id="profile-content">
+      <!-- 個人資料將顯示在此 -->
+    </div>
+    <button onclick="logout()">登出</button>
+    <p class="error" id="error-message"></p>
+    <p>商品 <a href="/shop_page">點此商品區</a></p>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", loadProfile);
+
+    async function loadProfile() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("請先登入！");
+        window.location.href = "/user_login";
+        return;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:8080/profile", {
+          method: "GET",
+          headers: {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("無法取得個人資料");
+        }
+
+        const data = await response.json();
+        document.getElementById("profile-content").innerHTML = `
+          <p><strong>會員名稱:</strong> ${data.memberName}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+        `;
+      } catch (error) {
+        console.error("錯誤:", error);
+        document.getElementById("error-message").textContent = "請重新登入。";
+        setTimeout(logout, 2000);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      window.location.href = "/user_login";
+    }
+  </script>
+
+</body>
+</html>
