@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>付款頁面</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+    .btn {
+      background-color: #007BFF;
+      color: white;
+      padding: 12px 25px;
+      font-size: 18px;
+      margin: 20px auto;
+      display: block;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 50%;
+      text-align: center;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>付款頁面</h1>
+  <button class="btn" onclick="checkout()">前往 LINE Pay 付款</button>
+
+  <script>
+    $(document).ready(function () {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("請先登入！");
+        window.location.href = "/user_login";  // 根據實際情況調整
+        return;
+      }
+
+      // 設定全域 AJAX 請求時附帶 Authorization header
+      $.ajaxSetup({
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader("Authorization", "Bearer " + token);
+        }
+      });
+
+      // 檢查是否從 LINE Pay 回來，若 URL 有 transactionId，則進行付款確認
+      checkPaymentStatus();
+    });
+
+    // 付款請求，取得 LINE Pay 的付款連結
+    function checkout() {
+      $(".btn").prop("disabled", true).text("處理中...");  // 禁用按鈕並顯示處理中訊息
+
+      $.post("/request", function (data) {
+        if (data.info && data.info.paymentUrl && data.info.paymentUrl.web) {
+          let paymentUrl = data.info.paymentUrl.web;
+          let transactionId = data.info.transactionId;
+          // 設定付款完成後的返回網址，假設導向同一頁 checkout.html
+          let confirmUrl = window.location.origin + "/checkout.html?transactionId=" + transactionId;
+          // 轉跳到 LINE Pay 付款頁面
+          window.location.href = paymentUrl + "&redirectUrl=" + encodeURIComponent(confirmUrl);
+        } else {
+          alert("付款請求失敗，請稍後再試");
+          $(".btn").prop("disabled", false).text("前往 LINE Pay 付款");
+        }
+      }).fail(function () {
+        alert("付款請求失敗，請稍後再試");
+        $(".btn").prop("disabled", false).text("前往 LINE Pay 付款");
+      });
+    }
+
+    // 付款確認：若 URL 中帶有 transactionId，則呼叫後端確認付款狀態
+    function checkPaymentStatus() {
+      let params = new URLSearchParams(window.location.search);
+      let transactionId = params.get("transactionId");
+      if (transactionId) {
+        $.post("/redirect", { transactionId: transactionId }, function (response) {
+          if (response.success) {
+            alert("付款成功！");
+            window.location.href = "/order_success"; // 付款成功後導向訂單成功頁面
+          } else {
+            alert("付款確認失敗，請聯繫客服");
+          }
+        }).fail(function () {
+          alert("付款確認請求失敗，請稍後再試");
+        });
+      }
+    }
+  </script>
+
+</body>
+</html>

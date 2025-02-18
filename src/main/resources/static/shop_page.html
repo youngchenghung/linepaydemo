@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>線上購物</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    .product, .cart-item {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+      width: 250px;
+      border-radius: 8px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .product:hover, .cart-item:hover {
+      transform: scale(1.05);
+    }
+    .product img, .cart-item img {
+      width: 100%;
+      height: auto;
+      border-radius: 5px;
+    }
+    .cart {
+      margin-top: 30px;
+      border-top: 2px solid #333;
+      padding-top: 10px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .checkout-btn {
+      margin-top: 20px;
+      width: 100%;
+    }
+    .cart-item p {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>商品列表</h1>
+  <div id="product-list"></div>
+
+  <h2>🛒 購物車</h2>
+  <div id="cart-list"></div>
+  <button onclick="clearCart()">清空購物車</button>
+  <button class="checkout-btn" onclick="goToCheckout()">前往付款</button>
+
+  <script>
+    $(document).ready(function () {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("請先登入！");
+        window.location.href = "/user_login";
+        return;
+      }
+
+      $.ajaxSetup({
+        beforeSend: function(xhr) {
+          const token = localStorage.getItem("token");
+          if (token) {
+            xhr.setRequestHeader("Authorization", "Bearer " + token);
+          }
+        }
+      });
+
+      loadProducts();
+      loadCart();
+    });
+
+    function loadProducts() {
+      $.get("/products", function (data) {
+        let productList = $("#product-list");
+        productList.empty();
+        data.forEach(product => {
+          productList.append(`
+            <div class="product">
+              <img src="${product.imageUrl || 'https://via.placeholder.com/150'}" alt="${product.name}">
+              <h3>${product.name}</h3>
+              <p>價格：$${product.price}</p>
+              <button onclick="addToCart('${product.id}', '${product.name}', ${product.price}, '${product.imageUrl}')">加入購物車</button>
+            </div>
+          `);
+        });
+      });
+    }
+
+    function addToCart(id, name, price, imageUrl) {
+      let cartItemArray = [{
+        id: id,
+        name: name,
+        imageUrl: imageUrl,
+        price: price,
+        quantity: 1
+      }];
+      $.ajax({
+        url: "/cart/add",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(cartItemArray),
+        success: function () {
+          alert(`${name} 已加入購物車`);
+          loadCart();
+        },
+        error: function(xhr) {
+          alert("加入購物車失敗");
+        }
+      });
+    }
+
+    function loadCart() {
+      $.get("/cart/items", function (data) {
+        let cartList = $("#cart-list");
+        cartList.empty();
+
+        if (data.length === 0) {
+          cartList.append("<p>購物車是空的</p>");
+          return;
+        }
+
+        let cartMap = {};
+        data.forEach(item => {
+          if (cartMap[item.id]) {
+            cartMap[item.id].quantity += item.quantity;
+          } else {
+            cartMap[item.id] = { ...item };
+          }
+        });
+
+        Object.values(cartMap).forEach(item => {
+          cartList.append(`
+            <div class="cart-item">
+              <img src="${item.imageUrl || 'https://via.placeholder.com/150'}" alt="${item.name}">
+              <p><strong>商品：</strong>${item.name}</p>
+              <p><strong>數量：</strong>${item.quantity}</p>
+              <p><strong>價格：</strong>$${item.price}</p>
+            </div>
+          `);
+        });
+      }).fail(function(xhr) {
+        if (xhr.status === 401 || xhr.status === 403) {
+          alert("請重新登入！");
+          window.location.href = "/user_login";
+        }
+      });
+    }
+
+    function clearCart() {
+      $.post("/cart/clear", function () {
+        alert("購物車已清空");
+        loadCart();
+      }).fail(function(xhr) {
+        if (xhr.status === 401 || xhr.status === 403) {
+          alert("請重新登入！");
+          window.location.href = "/user_login";
+        }
+      });
+    }
+
+    function goToCheckout() {
+      window.location.href = "/linepay_pay";
+    }
+  </script>
+
+</body>
+</html>
