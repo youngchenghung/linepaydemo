@@ -36,7 +36,7 @@ public class LinePayDaoImpl implements LinePayDao {
         // 創建請求表頭
         HttpHeaders headers = createRequestHeaders(requestUri, linePayRequest, nonce);
         HttpEntity<LinePayRequest> request = new HttpEntity<>(linePayRequest, headers);
-        // System.out.println("request: " + request);
+        System.out.println("request: " + request);
 
         // 發送 POST 請求並獲取響應
         ResponseEntity<LinePayResponse> response = restTemplate.postForEntity(url, request, LinePayResponse.class);

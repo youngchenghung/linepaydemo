@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.RowMapper;
 import linepaytest.LinePayDemo.Model.Member;
 
 public class MemberRowMapper implements RowMapper<Member> {
+    
     @Override
     public Member mapRow(ResultSet rs, int rowNum) throws SQLException {
         Member member = new Member();

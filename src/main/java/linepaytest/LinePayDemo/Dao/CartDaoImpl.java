@@ -17,11 +17,13 @@ public class CartDaoImpl implements CartDao {
         cart.add(items);
     }
 
+    // 取得購物車內容
     @Override
     public List<CartItem> getCartItems() {
         return new ArrayList<>(cart);
     }
 
+    // 清除購物車內容
     @Override
     public void clearCart() {
         cart.clear();
