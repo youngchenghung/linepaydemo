@@ -14,16 +14,19 @@ public class CartServiceImpl implements CartService {
     @Autowired 
     private CartDao cartDao;
 
+    // 增加商品到購物車
     @Override
     public void addItemToCart(CartItem items) {
         cartDao.addItem(items);
     }
     
+    // 取得購物車內容
     @Override
     public void clearCart() {
         cartDao.clearCart();
     }
 
+    // 清除購物車內容
     @Override
     public List<CartItem> getCartItems() {
         return cartDao.getCartItems();

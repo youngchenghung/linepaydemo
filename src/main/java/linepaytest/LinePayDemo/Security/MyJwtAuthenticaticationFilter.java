@@ -14,6 +14,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import linepaytest.LinePayDemo.Dao.Oauth2MemberDao;
+import linepaytest.LinePayDemo.Model.Oauth2Member;
 
 @Component
 public class MyJwtAuthenticaticationFilter extends OncePerRequestFilter {
@@ -23,6 +25,9 @@ public class MyJwtAuthenticaticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private Oauth2MemberDao oauth2MemberDao;
 
     // doFilterInternal 方法會在每次 HTTP 請求進來時執行
     // 這個方法會檢查 HTTP 請求中是否有 JWT 字串
@@ -37,18 +42,32 @@ public class MyJwtAuthenticaticationFilter extends OncePerRequestFilter {
                 // 取得 HTTP 請求的 URI 路徑
                 // 如果 URI 路徑是 /register 或 /login 就不用進行驗證，直接放行
                 String requestURI = request.getRequestURI();
-                if (requestURI.equals("/Register") || requestURI.equals("/Login")) {
+                if (requestURI.equals("/user_register") || requestURI.equals("/user_login")) {
                     filterChain.doFilter(request, response);
                     return;
                 }
 
-                // 取得 HTTP 請求 JWT 驗證
+                // 解析 JWT 
                 String token = myJwtUtil.extractToken(request);
                 if (token != null && myJwtUtil.validateToken(token)) {
                     String email = myJwtUtil.getEmailFromToken(token);
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    String authType = myJwtUtil.getAuthTypeFromToken(token); // 取得 authType
+
+                    if ("JWT".equals(authType)) {
+                        // 透過 JWT 的方式驗證使用者
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    } else if ("OAuth2".equals(authType)) {
+                        // 透過 OAuth2 的方式驗證使用者
+                        Oauth2Member oauth2Member = oauth2MemberDao.getOauth2MemberByEmail(email);
+                        if (oauth2Member != null) {
+                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                oauth2Member, null, null); // OAuth2 沒有 authorities
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                        }
+                    }
                 }
                 filterChain.doFilter(request, response);
             }

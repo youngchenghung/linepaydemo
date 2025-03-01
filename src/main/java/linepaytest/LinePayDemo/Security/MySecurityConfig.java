@@ -29,6 +29,12 @@ public class MySecurityConfig {
     @Autowired
     private MyUserDetailService myUserDetailsService;
 
+    @Autowired
+    private MyOidcUserService myOidcUserService;
+
+    @Autowired
+    private MyOauth2JwtSuccessHandler myOauth2JwtSuccessHandler;
+
     // 設定密碼加密器
     // 這裡使用 BCryptPasswordEncoder 來加密密碼
     @Bean
@@ -60,11 +66,11 @@ public class MySecurityConfig {
     // 1. /register 和 /login 可以不用驗證就可以存取
     // 2. /profile 必須要驗證才能存取
     @Bean
-    public SecurityFilterChain securityFilterChian(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf().disable()
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // 使用session當oauth2需要時才建立 
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/register","/user_register", "/user_register.html", "/login", "/user_login", "/user_login.html",
                                     "/user_profile", "/user_profile.html", "shop_page", "/shop_page.html", 
@@ -74,6 +80,10 @@ public class MySecurityConfig {
                 .requestMatchers("/request").authenticated() // 這裡的 linepay_pay 接口
                 .anyRequest().authenticated()
             )
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/oauth2/authorization/google")
+                .userInfoEndpoint(userInfo -> userInfo.oidcUserService(myOidcUserService))
+                .successHandler(myOauth2JwtSuccessHandler)) // 登入成功後，產生 JWT token
             .formLogin(login -> login.disable())
             .logout(logout -> logout.disable())
             .addFilterBefore(myJwtAuthenticaticationFilter, UsernamePasswordAuthenticationFilter.class)

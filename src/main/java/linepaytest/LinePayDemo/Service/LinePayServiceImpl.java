@@ -1,5 +1,7 @@
 package linepaytest.LinePayDemo.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,7 +24,7 @@ public class LinePayServiceImpl implements LinePayService {
     
     // LinePay API #1付款請求
     @Override
-    public LinePayResponse initiatePayment(List<CartItem> cartItems) {
+    public LinePayResponse initiatePayment(List<CartItem> cartItems, String jwtToken) {
         // 取得購物車商品
         int totalAmount = cartItems.stream().mapToInt(item -> item.getPrice() * item.getQuantity()).sum(); // 計算總金額
 
@@ -36,8 +38,9 @@ public class LinePayServiceImpl implements LinePayService {
         packageInfo.setAmount(totalAmount);
         
         // 組裝 LinePayRequest 中 RedirectUrls 資訊
+        String encodedToken = URLEncoder.encode(jwtToken, StandardCharsets.UTF_8);
         LinePayRequest.RedirectUrls redirectUrls = new LinePayRequest.RedirectUrls();
-        redirectUrls.setConfirmUrl("http://localhost:8080/redirect");
+        redirectUrls.setConfirmUrl("http://localhost:8080/redirect?token=" + encodedToken);
         redirectUrls.setCancelUrl("http://localhost:8080/cancel");
 
         // 組裝 LinePayRequest
