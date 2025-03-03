@@ -36,7 +36,7 @@ public class MemberDaoImpl implements MemberDao {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         // 執行 SQL update 更新資料
-        namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(map), keyHolder);
+        namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(map), keyHolder, new String[] {"member_id"});
 
         // 取得 memberId
         Integer memberId = keyHolder.getKey().intValue();
