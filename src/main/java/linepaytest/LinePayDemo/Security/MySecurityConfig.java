@@ -81,10 +81,11 @@ public class MySecurityConfig {
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
-                .loginPage("/oauth2/authorization/google")
                 .userInfoEndpoint(userInfo -> userInfo.oidcUserService(myOidcUserService))
                 .successHandler(myOauth2JwtSuccessHandler)) // 登入成功後，產生 JWT token
-            .formLogin(login -> login.disable())
+            .formLogin(login -> login
+                .loginPage("/user_login")
+                .permitAll())
             .logout(logout -> logout.disable())
             .addFilterBefore(myJwtAuthenticaticationFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
