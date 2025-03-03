@@ -51,6 +51,7 @@ public class Oauth2MemberDaoImpl implements Oauth2MemberDao {
         String sql = """
                 INSERT INTO oauth2_member(provider, provider_id, name, email, access_token, expires_at)
                 VALUES (:provider, :providerId, :name, :email, :accessToken, :expiresAt)
+                RETURNING oauth2_member_id
                 """;
 
         Map<String, Object> map = new HashMap<>();
