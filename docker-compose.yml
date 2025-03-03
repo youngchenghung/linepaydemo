@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  springboot-app:
+    build:
+      context: .             # 當前目錄（根目錄），Dockerfile 也在這裡
+      dockerfile: Dockerfile # 確認要使用的 Dockerfile
+    container_name: linepaydemo
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env

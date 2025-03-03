@@ -37,7 +37,7 @@
 
         .container {
             width: 80%;
-            max-width: 600px;
+            max-width: 400px;
             margin: 50px auto;
             padding: 30px;
             background-color: #fff;
@@ -85,10 +85,29 @@
         #oauth2Login button {
             background-color: #4285f4;
             border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         #oauth2Login button:hover {
             background-color: #357ae8;
+        }
+
+        #oauth2Login img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
         }
 
         footer {
@@ -109,6 +128,7 @@
 <body>
 
     <div class="navbar">
+        <a href="/">首頁</a>
         <a href="/user_register">註冊</a>
     </div>
 
@@ -120,12 +140,16 @@
             <input type="email" id="email" name="email" required>
             <label for="password">密碼：</label>
             <input type="password" id="password" name="password" required>
-            <button type="submit">登入</button>
+            <button type="submit" id="loginBtn">登入</button>
         </form>
 
         <div id="oauth2Login">
-            <button onclick="oauth2Login()">使用 Google 登入</button>
+            <button onclick="oauth2Login()">
+                <img src="https://www.google.com/favicon.ico" alt="Google Logo"> 使用 Google 登入
+            </button>
         </div>
+
+        <p id="errorMessage" class="error"></p>
     </div>
 
     <footer>
@@ -133,28 +157,39 @@
     </footer>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const errorMessage = document.getElementById('errorMessage');
 
-            fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.token) {
+            loginBtn.classList.add('loading');
+            loginBtn.innerText = '登入中...';
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.token) {
                     localStorage.setItem('jwt_token', data.token);
                     window.location.href = '/user_profile';
                 } else {
-                    alert('登入失敗');
+                    throw new Error(data.message || '登入失敗');
                 }
-            })
-            .catch(error => alert('登入錯誤: ' + error));
+            } catch (error) {
+                errorMessage.innerText = error.message;
+            } finally {
+                loginBtn.classList.remove('loading');
+                loginBtn.innerText = '登入';
+            }
         });
 
         function oauth2Login() {
