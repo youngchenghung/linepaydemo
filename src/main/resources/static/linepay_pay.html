@@ -137,37 +137,42 @@
   </div>
 
   <script>
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-      // 先呼叫後端登出 API
-      fetch('/logout', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+    document.getElementById('logoutBtn').addEventListener('click', async function() {
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+            alert('尚未登入');
+            return;
         }
-      })
-      .then(response => {
-        if (response.ok) {
-          // 清除應用內部儲存的 token
-          localStorage.removeItem('jwt_token');
 
-          // 開啟 Google 登出頁面 (在新視窗中)
-          var logoutWindow = window.open('https://accounts.google.com/Logout', '_blank', 'width=500,height=600');
+        try {
+            const response = await fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
 
-          // 延時 3 秒後關閉 Google 登出視窗，並重定向至應用的登入頁面
-          setTimeout(function(){
-            if (logoutWindow) {
-              logoutWindow.close();
+            if (response.ok) {
+                const result = await response.json();
+                console.log(result.message);
+                localStorage.removeItem('jwt_token');
+
+                const authType = JSON.parse(atob(token.split('.')[1])).authType;
+
+                if (authType === 'OAuth2') {
+                    const logoutWindow = window.open('https://accounts.google.com/Logout', '_blank', 'width=500,height=600');
+                    setTimeout(() => logoutWindow.close(), 3000);
+                }
+
+                window.location.href = '/login.html';
+            } else {
+                const error = await response.json();
+                alert(error.error);
             }
-            window.location.href = '/user_login';  // 返回登入頁面
-          }, 3000);  // 根據需要調整延時時間
-        } else {
-          alert('登出失敗，請稍後再試。');
+        } catch (error) {
+            console.error('登出失敗:', error);
+            alert('登出失敗，請稍後再試');
         }
-      })
-      .catch(error => {
-        console.error('登出錯誤:', error);
-        alert('登出過程中發生錯誤，請稍後再試。');
-      });
     });
 
     $(document).ready(function () {
