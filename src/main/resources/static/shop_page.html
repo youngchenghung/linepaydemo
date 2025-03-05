@@ -238,7 +238,7 @@
 
   <script>
     document.getElementById('logoutBtn').addEventListener('click', function() {
-      fetch('/oauth2/logout', {
+      fetch('/logout', {
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
