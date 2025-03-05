@@ -48,7 +48,7 @@ public class MemberController {
 
     // 註冊會員帳號
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Member member) {
+    public ResponseEntity<?> userRegister(@RequestBody Member member) {
         
         // 將密碼加密
         String hashedPassword = passwordEncoder.encode(member.getPassword());
@@ -79,7 +79,7 @@ public class MemberController {
 
     // 登入會員帳號
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Member member){
+    public ResponseEntity<?> userLogin(@RequestBody Member member){
         try {
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(member.getEmail(), member.getPassword()));
@@ -136,24 +136,44 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Member not found"));
     }
 
-    // OAuth2 會員登出
-    @PostMapping("/oauth2/logout")
-    public ResponseEntity<?> oauth2Logout(HttpServletRequest request, HttpServletResponse response) {
-        String username = request.getRemoteUser();
-        System.out.println("OAuth2 Logout triggered for user: " + username);
-    
-        // 清除 oauth2 Session
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();  // 無效化 session，清理用戶登錄狀態
-            System.out.println("Session invalidated for user " + username);
-        } else {
-            System.out.println("No session found for user " + username);
+    // 會員帳號登出
+    @PostMapping("/logout")
+    public ResponseEntity<?> userLogout(HttpServletRequest request, HttpServletResponse response,
+    @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Token is missing"));
         }
-    
-        // 狀態碼為 200，表示登出請求成功處理
-        response.setStatus(HttpServletResponse.SC_OK);
-        System.out.println("User " + username + " logged out");
-        return ResponseEntity.ok(Map.of("message", "登出成功"));
+
+        String token = authHeader.substring(7);
+        String authType;
+
+        try {
+            authType = myJwtUtil.getAuthTypeFromToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid token"));
+        }
+
+        if ("JWT".equals(authType)) {
+            // 註冊會員登出
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+                System.out.println("Session invalidated for registered user");
+            }
+            response.setStatus(HttpServletResponse.SC_OK);
+            return ResponseEntity.ok(Map.of("message", "User logged out successfully"));
+        } else if ("OAuth2".equals(authType)) {
+            // OAuth2 登出
+            String username = request.getRemoteUser();
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+                System.out.println("Session invalidated for OAuth2 user: " + username);
+            }
+            response.setStatus(HttpServletResponse.SC_OK);
+            return ResponseEntity.ok(Map.of("message", "OAuth2 user logged out successfully"));
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid token"));
     }
 }

@@ -12,9 +12,9 @@ COPY pom.xml .
 COPY src/ ./src/
 
 # 設定環境變數（Render 會自動幫你帶入 Environment Variables）
-ENV POSTGRES_URL=postgresql://linepaypostgresql_user:B2Hy4IIJzPoqm8wOfLV3J9yDS6QH0B2E@dpg-cv25tc2n91rc73blcfc0
-ENV POSTGRES_USERNAME=inepaypostgresql_user
-ENV POSTGRES_PASSWORD=B2Hy4IIJzPoqm8wOfLV3J9yDS6QH0B2E
+ENV POSTGRES_URL=${POSTGRES_URL}
+ENV POSTGRES_USERNAME=${POSTGRES_USERNAME}
+ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
 # 執行 Maven 打包
 RUN mvn clean package -DskipTests
