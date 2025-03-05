@@ -78,7 +78,6 @@ public class Oauth2MemberDaoImpl implements Oauth2MemberDao {
                 SELECT oauth2_member_id, provider, provider_id, name, email, access_token, expires_at
                 From oauth2_member
                 WHERE email = :email
-                RETURNING oauth2_member_id
                 """;
 
         Map<String, Object> map = new HashMap<>();
