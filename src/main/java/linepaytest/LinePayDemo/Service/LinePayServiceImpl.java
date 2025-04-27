@@ -40,8 +40,8 @@ public class LinePayServiceImpl implements LinePayService {
         // 組裝 LinePayRequest 中 RedirectUrls 資訊
         String encodedToken = URLEncoder.encode(jwtToken, StandardCharsets.UTF_8);
         LinePayRequest.RedirectUrls redirectUrls = new LinePayRequest.RedirectUrls();
-        redirectUrls.setConfirmUrl("http://localhost:8080/redirect?token=" + encodedToken);
-        redirectUrls.setCancelUrl("http://localhost:8080/cancel");
+        redirectUrls.setConfirmUrl("https://linepaydemo.onrender.com/redirect?token=" + encodedToken);
+        redirectUrls.setCancelUrl("https://linepaydemo.onrender.com/cancel");
 
         // 組裝 LinePayRequest
         LinePayRequest linePayRequest = new LinePayRequest();

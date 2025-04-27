@@ -1,3 +1,4 @@
+#MYSQL
 CREATE DATABASE linepaydemo;
 
 USE linepaydemo;
@@ -7,5 +8,13 @@ CREATE TABLE member
     member_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(256) NOT NULL,
     email VARCHAR(256) NOT NULL UNIQUE KEY,
+    password VARCHAR(256) NOT NULL
+);
+
+#PostgreSQL
+CREATE TABLE member (
+    member_id SERIAL PRIMARY KEY,
+    name VARCHAR(256) NOT NULL,
+    email VARCHAR(256) NOT NULL UNIQUE,
     password VARCHAR(256) NOT NULL
 );
